@@ -23,7 +23,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import torch
-from transformers import BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
+from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
     get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSampler, SequentialSampler
 
@@ -48,7 +48,7 @@ class BiLstm(Model):
     def __init__(self, text):
         super().__init__(text)
         self.model = tf.keras.models.load_model('models/Bi-Lstm/model')
-        with open('../../Desktop/AI-communication-module/models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
+        with open('models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
             self.tokenizer = pickle.load(f)
 
     def download_dependencies(self):
@@ -98,7 +98,7 @@ class Sentiment(Model):
     def __init__(self, text):
         super().__init__(text)
         self.model = tf.keras.models.load_model('models/SentimentAnalysis/model')
-        with open('../../Desktop/AI-communication-module/models/SentimentAnalysis/tokenizer.pickle', 'rb') as f:
+        with open('models/SentimentAnalysis/tokenizer.pickle', 'rb') as f:
             self.tokenizer = pickle.load(f)
         self.TEXT_CLEANING_RE = "@\S+|https?:\S+|http?:\S|[^A-Za-z0-9]+"
 
@@ -401,6 +401,80 @@ class BertModel(Model):
         return preds['our rating'][0]
 
 
+class ROBERTA(torch.nn.Module, Model):
+    def __init__(self, text, dropout_rate=0.4):
+        super(ROBERTA, self).__init__()
+        # Model.__init__(text)
+        self.text = text
+        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+        self.roberta = RobertaModel.from_pretrained('roberta-base', return_dict=False, num_labels=4)
+        self.d1 = torch.nn.Dropout(dropout_rate)
+        self.l1 = torch.nn.Linear(768, 64)
+        self.bn1 = torch.nn.LayerNorm(64)
+        self.d2 = torch.nn.Dropout(dropout_rate)
+        self.l2 = torch.nn.Linear(64, 4)
+
+        if torch.cuda.is_available():
+            self.device = torch.device('cuda:0')
+        else:
+            self.device = torch.device('cpu')
+
+    def download_dependencies(self):
+        try:
+            nltk.data.find('stopwords')
+            nltk.data.find('wordnet')
+        except LookupError:
+            nltk.download('stopwords')
+            nltk.download('wordnet')
+
+    def process_text(self):
+        lemmatizer = WordNetLemmatizer()
+        corpus = []
+
+        for i in range(len(self.text)):
+            review = re.sub('[^a-zA-Z]', ' ', self.text[i])
+            review = review.lower()
+            review = review.split()
+            review = [lemmatizer.lemmatize(word) for word in review if not word in stopwords.words('english')]
+            review = ' '.join(review)
+            corpus.append(review)
+        self.text = corpus
+
+    def load_checkpoint(self, path, model):
+        state_dict = torch.load(path, map_location=self.device)
+        model.load_state_dict(state_dict['model_state_dict'])
+
+        return state_dict['valid_loss']
+
+    def predict(self):
+        labels_output = []
+        labels = ['false', 'true', 'partially false', 'other']
+        roberta_encoded_dict = self.tokenizer.encode_plus(
+            self.text,  # Sentence to encode.
+            add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
+            max_length=128,  # Pad & truncate all sentences.
+            pad_to_max_length=True,
+            return_attention_mask=True,  # Construct attn. masks.
+            return_tensors='pt',  # Return pytorch tensors.
+        )
+        roberta_encoded_dict = roberta_encoded_dict.to(self.device)
+        outputs = self(**roberta_encoded_dict)
+        labels_output.append(labels[outputs.argmax()])
+        return labels_output
+
+    def forward(self, input_ids, attention_mask):
+        _, x = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
+        x = self.d1(x)
+        x = self.l1(x)
+        x = self.bn1(x)
+        x = torch.nn.Tanh()(x)
+        x = self.d2(x)
+        x = self.l2(x)
+
+        return x
+
+
+
 if __name__ == '__main__':
     text = parse_args()
 
@@ -432,7 +506,15 @@ if __name__ == '__main__':
     except:
         prediction_bert = 'other'
 
-    c = Counter([prediction_bilstm, prediction_sentiment, prediction_bert, prediction_three_layer])
+    # ROBERTA
+    roberta = ROBERTA(text)
+    roberta.to(roberta.device)
+    roberta.download_dependencies()
+    roberta.load_checkpoint('models/Roberta/model/model.pkl', roberta)
+    roberta.process_text()
+    prediction_roberta = roberta.predict()[0]
+
+    c = Counter([prediction_bilstm, prediction_sentiment, prediction_bert, prediction_three_layer, prediction_roberta])
     value, count = c.most_common()[0]
     if value:
         with open('scor.txt', 'w') as f:
