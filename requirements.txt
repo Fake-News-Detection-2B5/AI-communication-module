@@ -1,0 +1,10 @@
+nltk==3.4.5
+scipy==1.6.3
+spacy==3.0.6
+numpy==1.19.2
+empath==0.89
+tensorflow==2.5.0
+pandas==1.2.4
+scikit_learn==0.24.2
+torch==1.8.1
+transformers==4.6.0
