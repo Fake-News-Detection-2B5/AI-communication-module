@@ -496,25 +496,25 @@ if __name__ == '__main__':
     three_layer.process_text()
     prediction_three_layer = three_layer.predict()
 
-    # Bert
-    try:
-        loaded_model = pickle.load(open('models/Bert/finalized_model.sav', 'rb'))
+    # # Bert
+    # try:
+    #     loaded_model = pickle.load(open('models/Bert/finalized_model.sav', 'rb'))
 
-        bert = BertModel(loaded_model, text)
-        prediction_bert = bert.predict()
-        print(prediction_bert)
-    except:
-        prediction_bert = 'other'
+    #     bert = BertModel(loaded_model, text)
+    #     prediction_bert = bert.predict()
+    #     print(prediction_bert)
+    # except:
+    #     prediction_bert = 'other'
 
-    # ROBERTA
-    roberta = ROBERTA(text)
-    roberta.to(roberta.device)
-    roberta.download_dependencies()
-    roberta.load_checkpoint('models/Roberta/model/model.pkl', roberta)
-    roberta.process_text()
-    prediction_roberta = roberta.predict()[0]
+    # # ROBERTA
+    # roberta = ROBERTA(text)
+    # roberta.to(roberta.device)
+    # roberta.download_dependencies()
+    # roberta.load_checkpoint('models/Roberta/model/model.pkl', roberta)
+    # roberta.process_text()
+    # prediction_roberta = roberta.predict()[0]
 
-    c = Counter([prediction_bilstm, prediction_sentiment, prediction_bert, prediction_three_layer, prediction_roberta])
+    c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
     value, count = c.most_common()[0]
     if value:
         with open('scor.txt', 'w') as f:
