@@ -53,75 +53,25 @@ public class AiService {
             return new ScoreResult(aiRepository.getOne(aiEntity.getId()).getResult());
         }
     }
-
     /**
-     * Private method that executes the first python script using the given entity.
+     * private method that gets the score resulted from the python script
      * @param aiEntity the given entity for which the score needs to be calculated
      * @return the score
-     * we execute the python file (with the text of the post as a parameter) => it will write the scor to a .txt file
-     * then we read from that file (scor1.txt)
-     * we keep the scor in the according variabiles
-     */
-    private String executePython1(AiEntity aiEntity) throws IOException {
-        Process p1 = Runtime.getRuntime().exec("python3 py1.py " + aiEntity.getContent());
-        Scanner in = new Scanner(new File("scor1.txt"));
-        String score1 = in.nextLine();
-        return score1;
-    }
-
-    /**
-     * Private method that executes the second python script using the given entity.
-     * @param aiEntity the given entity for which the score needs to be calculated
-     * @return the score
-     * we execute the python file (with the text of the post as a parameter) => it will write the scor to a .txt file
-     * then we read from that file (scor2.txt)
-     * we keep the scor in the according variabiles
-     */
-    private String executePython2(AiEntity aiEntity) throws IOException {
-        Process p2 = Runtime.getRuntime().exec("python3 py2.py " + aiEntity.getContent());
-        Scanner in = new Scanner(new File("scor2.txt"));
-        String score2 = in.nextLine();
-        return score2;
-    }
-
-    /**
-     * private method that merges the 2 scores resulted from the 2 python scripts
-     * @param aiEntity the given entity for which the score needs to be calculated
-     * @return the merged score
-     * the method first calculates the 2 individual scores (result1 and result2) by executing the 2 python scripts with aiEntity as a parameter
-     * then it merges the score:
-     * true, true => true
-     * true, false or false, true => partially false
-     * false, false => false
-     * partially false, true or true, partially false => true
-     * partially false, false or false, partially false => false
-     * partially false, partially false => partially false
      */
     private String calculateScore(AiEntity aiEntity) throws IOException {
-        String result1 = executePython1(aiEntity);
-        String result2 = executePython2(aiEntity);
-
-        if (result1.equals("true") && result2.equals("true")) {
-            return "true";
+        Process p1 = Runtime.getRuntime().exec("python3 classification.py " + aiEntity.getContent());
+        try {
+            p1.waitFor();//wait for py script to finish
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        File file = new File("scor.txt");
+        Scanner in = new Scanner(file);
+        String score1 = in.nextLine();
 
-        if (result1.equals("true") && result2.equals("false") || result1.equals("fals" +
-                "e") && result2.equals("true")) {
-            return "partially false";
-        }
+        in.close();
+        file.delete();//delete file after reading score
 
-        if (result1.equals("false") && result2.equals("false")) {
-            return "false";
-        }
-
-        if (result1.equals("partially false") && result2.equals("true") || result1.equals("true") && result2.equals("partially false")) {
-            return "true";
-        }
-
-        if (result1.equals("partially false") && result2.equals("false") || result1.equals("false") && result2.equals("partially false")) {
-            return "false";
-        }
-
-        return "partially false";
+        return score1;
     }
 }

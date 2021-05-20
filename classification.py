@@ -517,5 +517,5 @@ if __name__ == '__main__':
     c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
     value, count = c.most_common()[0]
     if value:
-        with open('scor.txt', 'w') as f:
+        with open('scor.txt', 'w+') as f:
             f.write(value)
