@@ -49,8 +49,7 @@ public class AiService {
             return new ScoreResult(result);
         }
         else {
-            //return its score
-            return new ScoreResult(aiRepository.getOne(aiEntity.getId()).getResult());
+            return new ScoreResult(exists.get().getResult());
         }
     }
     /**
