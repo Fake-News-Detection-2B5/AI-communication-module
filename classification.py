@@ -22,7 +22,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from tensorflow.keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-import torch
+# import torch
 from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
     get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSampler, SequentialSampler
@@ -262,146 +262,146 @@ def clean_text(text):
     return text
 
 
-class BertModel(Model):
-    def __init__(self, model, text):
-        if torch.cuda.is_available():
-            self.device = torch.device('cuda')
-        else:
-            self.device = torch.device('cpu')
-        self.model = model
-        self.text = self.preprocess(text)
-        self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased', do_lower_case=True)
+# class BertModel(Model):
+#     def __init__(self, model, text):
+#         if torch.cuda.is_available():
+#             self.device = torch.device('cuda')
+#         else:
+#             self.device = torch.device('cpu')
+#         self.model = model
+#         self.text = self.preprocess(text)
+#         self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased', do_lower_case=True)
 
-    def tokenize_map(self, sentence, labs='None'):
-        global labels
-        input_ids = []
-        attention_masks = []
+#     def tokenize_map(self, sentence, labs='None'):
+#         global labels
+#         input_ids = []
+#         attention_masks = []
 
-        for text in sentence:
-            #   (1) Tokenize the sentence.
-            #   (2) Prepend the `[CLS]` token to the start.
-            #   (3) Append the `[SEP]` token to the end.
-            #   (4) Map tokens to their IDs.
-            #   (5) Pad or truncate the sentence to `max_length`
-            #   (6) Create attention masks for [PAD] tokens.
+#         for text in sentence:
+#             #   (1) Tokenize the sentence.
+#             #   (2) Prepend the `[CLS]` token to the start.
+#             #   (3) Append the `[SEP]` token to the end.
+#             #   (4) Map tokens to their IDs.
+#             #   (5) Pad or truncate the sentence to `max_length`
+#             #   (6) Create attention masks for [PAD] tokens.
 
-            encoded_dict = self.tokenizer.encode_plus(
-                text,
-                add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
-                truncation='longest_first',  # Activate and control truncation
-                max_length=72,  # Max length according to our current RAM constraints.
-                pad_to_max_length=True,  # Pad & truncate all sentences.
-                return_attention_mask=True,  # Construct attn. masks.
-                return_tensors='pt',  # Return pytorch tensors.
-            )
+#             encoded_dict = self.tokenizer.encode_plus(
+#                 text,
+#                 add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
+#                 truncation='longest_first',  # Activate and control truncation
+#                 max_length=72,  # Max length according to our current RAM constraints.
+#                 pad_to_max_length=True,  # Pad & truncate all sentences.
+#                 return_attention_mask=True,  # Construct attn. masks.
+#                 return_tensors='pt',  # Return pytorch tensors.
+#             )
 
-            # Add the encoded sentence to the id list.
-            input_ids.append(encoded_dict['input_ids'])
+#             # Add the encoded sentence to the id list.
+#             input_ids.append(encoded_dict['input_ids'])
 
-            # And its attention mask (differentiates padding from non-padding).
-            attention_masks.append(encoded_dict['attention_mask'])
+#             # And its attention mask (differentiates padding from non-padding).
+#             attention_masks.append(encoded_dict['attention_mask'])
 
-        # Convert the lists into tensors.
-        input_ids = torch.cat(input_ids, dim=0)
-        attention_masks = torch.cat(attention_masks, dim=0)
+#         # Convert the lists into tensors.
+#         input_ids = torch.cat(input_ids, dim=0)
+#         attention_masks = torch.cat(attention_masks, dim=0)
 
-        if labs != 'None':  # Setting this for using this definition for both train and test data so labels won't be a problem in our outputs.
-            labels = torch.tensor(labels)
-            return input_ids, attention_masks, labels
-        else:
-            return input_ids, attention_masks
+#         if labs != 'None':  # Setting this for using this definition for both train and test data so labels won't be a problem in our outputs.
+#             labels = torch.tensor(labels)
+#             return input_ids, attention_masks, labels
+#         else:
+#             return input_ids, attention_masks
 
-    def floatToString(self, text):
-        try:
-            float(text)
-            return str(text)
-        except ValueError:
-            return text
+#     def floatToString(self, text):
+#         try:
+#             float(text)
+#             return str(text)
+#         except ValueError:
+#             return text
 
-    def line_removal(self, text):
-        all_list = [char for char in text if char not in "…-–—_©“”‘’•⋆»"]
-        clean_str = ''.join(all_list)
-        return clean_str
+#     def line_removal(self, text):
+#         all_list = [char for char in text if char not in "…-–—_©“”‘’•⋆»"]
+#         clean_str = ''.join(all_list)
+#         return clean_str
 
-    def punctuation_removal(self, text):
-        all_list = [char for char in text if char not in string.punctuation]
-        clean_str = ''.join(all_list)
-        return clean_str
+#     def punctuation_removal(self, text):
+#         all_list = [char for char in text if char not in string.punctuation]
+#         clean_str = ''.join(all_list)
+#         return clean_str
 
-    def preprocess(self, text, stem=False):
-        stop_words = stopwords.words('english')
-        stemmer = SnowballStemmer('english')
-        lemmatizer = WordNetLemmatizer()
-        text = self.floatToString(text)
-        text = text.lower()
-        text = self.line_removal(text)
-        text = self.punctuation_removal(text)
-        text = re.sub(r'[!]+', '!', text)
-        text = re.sub(r'[?]+', '?', text)
-        text = re.sub(r'[.]+', '.', text)
-        text = re.sub(r"'", "", text)
-        text = re.sub('\s+', ' ', text).strip()
-        text = re.sub(r'&amp;?', r'and', text)
-        text = re.sub(r"https?:\/\/t.co\/[A-Za-z0-9]+", "", text)
-        text = re.sub(r'[:"$%&\*+,-/:;<=>@\\^_`{|}~]+', '', text)
-        emoji_pattern = re.compile("["
-                                   u"\U0001F600-\U0001F64F"  # Emoticons
-                                   u"\U0001F300-\U0001F5FF"  # Symbols & Pictographs
-                                   u"\U0001F680-\U0001F6FF"  # Transport & Map Symbols
-                                   u"\U0001F1E0-\U0001F1FF"  # Flags (iOS)
-                                   u"\U00002702-\U000027B0"
-                                   u"\U000024C2-\U0001F251"
-                                   "]+", flags=re.UNICODE)
-        text = emoji_pattern.sub(r'EMOJI', text)
+#     def preprocess(self, text, stem=False):
+#         stop_words = stopwords.words('english')
+#         stemmer = SnowballStemmer('english')
+#         lemmatizer = WordNetLemmatizer()
+#         text = self.floatToString(text)
+#         text = text.lower()
+#         text = self.line_removal(text)
+#         text = self.punctuation_removal(text)
+#         text = re.sub(r'[!]+', '!', text)
+#         text = re.sub(r'[?]+', '?', text)
+#         text = re.sub(r'[.]+', '.', text)
+#         text = re.sub(r"'", "", text)
+#         text = re.sub('\s+', ' ', text).strip()
+#         text = re.sub(r'&amp;?', r'and', text)
+#         text = re.sub(r"https?:\/\/t.co\/[A-Za-z0-9]+", "", text)
+#         text = re.sub(r'[:"$%&\*+,-/:;<=>@\\^_`{|}~]+', '', text)
+#         emoji_pattern = re.compile("["
+#                                    u"\U0001F600-\U0001F64F"  # Emoticons
+#                                    u"\U0001F300-\U0001F5FF"  # Symbols & Pictographs
+#                                    u"\U0001F680-\U0001F6FF"  # Transport & Map Symbols
+#                                    u"\U0001F1E0-\U0001F1FF"  # Flags (iOS)
+#                                    u"\U00002702-\U000027B0"
+#                                    u"\U000024C2-\U0001F251"
+#                                    "]+", flags=re.UNICODE)
+#         text = emoji_pattern.sub(r'EMOJI', text)
 
-        tokens = []
-        for token in text.split():
-            if token not in stop_words:
-                tokens.append(lemmatizer.lemmatize(token))
-        return " ".join(tokens)
+#         tokens = []
+#         for token in text.split():
+#             if token not in stop_words:
+#                 tokens.append(lemmatizer.lemmatize(token))
+#         return " ".join(tokens)
 
-    def predict(self):
-        test_input_ids_f, test_attention_masks_f = self.tokenize_map(self.text)
-        prediction_data_f = TensorDataset(test_input_ids_f, test_attention_masks_f)
-        prediction_sampler_f = SequentialSampler(prediction_data_f)
-        prediction_dataloader_f = DataLoader(prediction_data_f, sampler=prediction_sampler_f, batch_size=12)
-        self.model.eval()
-        predictions = []
+#     def predict(self):
+#         test_input_ids_f, test_attention_masks_f = self.tokenize_map(self.text)
+#         prediction_data_f = TensorDataset(test_input_ids_f, test_attention_masks_f)
+#         prediction_sampler_f = SequentialSampler(prediction_data_f)
+#         prediction_dataloader_f = DataLoader(prediction_data_f, sampler=prediction_sampler_f, batch_size=12)
+#         self.model.eval()
+#         predictions = []
 
-        for batch in prediction_dataloader_f:
-            batch = tuple(t.to(self.device) for t in batch)
-            b_input_ids, b_input_mask, = batch
+#         for batch in prediction_dataloader_f:
+#             batch = tuple(t.to(self.device) for t in batch)
+#             b_input_ids, b_input_mask, = batch
 
-            with torch.no_grad():
-                outputs = self.model(b_input_ids, token_type_ids=None,
-                                     attention_mask=b_input_mask)
-            logits = outputs[0]
-            logits = logits.detach().cpu().numpy()
-            predictions.append(logits)
+#             with torch.no_grad():
+#                 outputs = self.model(b_input_ids, token_type_ids=None,
+#                                      attention_mask=b_input_mask)
+#             logits = outputs[0]
+#             logits = logits.detach().cpu().numpy()
+#             predictions.append(logits)
 
-        print('    DONE.')
+#         print('    DONE.')
 
-        flat_predictions = [item for sublist in predictions for item in sublist]
-        flat_predictions = np.argmax(flat_predictions, axis=1).flatten()
+#         flat_predictions = [item for sublist in predictions for item in sublist]
+#         flat_predictions = np.argmax(flat_predictions, axis=1).flatten()
 
-        preds = pd.DataFrame()
-        preds["our rating"] = flat_predictions
+#         preds = pd.DataFrame()
+#         preds["our rating"] = flat_predictions
 
-        pred1 = []
-        for i in range(len(preds)):
-            if preds['our rating'][i] == 0:
-                preds['our rating'][i] = 'false'
-            if preds['our rating'][i] == 3:
-                preds['our rating'][i] = 'true'
-            if preds['our rating'][i] == 1:
-                preds['our rating'][i] = 'other'
-            if preds['our rating'][i] == 2:
-                preds['our rating'][i] = 'partially false'
+#         pred1 = []
+#         for i in range(len(preds)):
+#             if preds['our rating'][i] == 0:
+#                 preds['our rating'][i] = 'false'
+#             if preds['our rating'][i] == 3:
+#                 preds['our rating'][i] = 'true'
+#             if preds['our rating'][i] == 1:
+#                 preds['our rating'][i] = 'other'
+#             if preds['our rating'][i] == 2:
+#                 preds['our rating'][i] = 'partially false'
 
-        return preds['our rating'][0]
+#         return preds['our rating'][0]
 
 
-class ROBERTA(torch.nn.Module, Model):
+# class ROBERTA(torch.nn.Module, Model):
     def __init__(self, text, dropout_rate=0.4):
         super(ROBERTA, self).__init__()
         # Model.__init__(text)

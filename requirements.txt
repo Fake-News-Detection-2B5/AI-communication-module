@@ -7,5 +7,4 @@ empath==0.89
 tensorflow-cpu==2.5.0
 pandas==1.2.4
 scikit_learn==0.24.2
-torch==1.8.1+cpu
 transformers==4.6.0
