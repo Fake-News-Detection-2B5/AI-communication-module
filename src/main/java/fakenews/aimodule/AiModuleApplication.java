@@ -11,13 +11,7 @@ import java.io.IOException;
 public class AiModuleApplication {
 
 	public static void main(String[] args) {
-		// SpringApplication.run(AiModuleApplication.class, args);
-		AiService aiService = new AiService(null);
-		try {
-			aiService.calculateScore(new AiEntity(100, "lol", "lol=be"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		SpringApplication.run(AiModuleApplication.class, args);
 
 	}
 
