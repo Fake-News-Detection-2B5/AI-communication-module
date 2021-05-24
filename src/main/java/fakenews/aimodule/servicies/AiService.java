@@ -70,7 +70,7 @@ public class AiService {
         String score1 = in.nextLine();
 
         in.close();
-        file.delete();//delete file after reading score
+        // file.delete();//delete file after reading score
 
         return score1;
     }
