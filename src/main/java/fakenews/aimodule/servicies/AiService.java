@@ -7,8 +7,7 @@ import fakenews.aimodule.utilities.ScoreResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -57,20 +56,39 @@ public class AiService {
      * @param aiEntity the given entity for which the score needs to be calculated
      * @return the score
      */
-    private String calculateScore(AiEntity aiEntity) throws IOException {
-        Process p1 = Runtime.getRuntime().exec("python3 classification.py " + aiEntity.getContent());
+    public String calculateScore(AiEntity aiEntity) throws IOException {
+        // Process p1 = Runtime.getRuntime().exec("python3 classification.py " + aiEntity.getContent());
+
+
+        /*
+        * For my fellow reader
+        *
+        * Dear friend,
+        * the app works as expected. Maybe on the cloud too. I don't fucking know tho.
+        * Good luck with it if you ever stumble upon this :)
+        *
+        * Best wishes,
+        * myself from the past
+        * */
+
+
+
+
+        FileWriter input = new FileWriter("input.txt");
+
+        input.write(aiEntity.getContent());
+        input.flush();
+
+        Process p1 = Runtime.getRuntime().exec("python3 test.py");
         try {
             p1.waitFor();//wait for py script to finish
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        File file = new File("scor.txt");
-        Scanner in = new Scanner(file);
+        Scanner in = new Scanner(new File("scor.txt"));
         String score1 = in.nextLine();
 
         in.close();
-        // file.delete();//delete file after reading score
-
         return score1;
     }
 }
