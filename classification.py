@@ -9,7 +9,7 @@ import argparse
 import itertools
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+# import tensorflow as tf
 from empath import Empath
 from nltk import tokenize
 import scipy.sparse as sp
@@ -19,13 +19,13 @@ from nltk.stem import PorterStemmer
 from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 from sklearn.ensemble import GradientBoostingClassifier
-from tensorflow.keras.preprocessing.text import Tokenizer
+# from tensorflow.keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+# from tensorflow.keras.preprocessing.sequence import pad_sequences
 # import torch
-from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
-    get_linear_schedule_with_warmup
-from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSampler, SequentialSampler
+# from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
+#    get_linear_schedule_with_warmup
+# from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSampler, SequentialSampler
 
 warnings.filterwarnings("ignore")
 
@@ -44,54 +44,54 @@ class Model:
         pass
 
 
-class BiLstm(Model):
-    def __init__(self, text):
-        super().__init__(text)
-        self.model = tf.keras.models.load_model('models/Bi-Lstm/model')
-        with open('models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
-            self.tokenizer = pickle.load(f)
+# class BiLstm(Model):
+#     def __init__(self, text):
+#         super().__init__(text)
+#         self.model = tf.keras.models.load_model('models/Bi-Lstm/model')
+#         with open('models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
+#             self.tokenizer = pickle.load(f)
 
-    def download_dependencies(self):
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        except AttributeError:
-            pass
-        else:
-            ssl._create_default_https_context = _create_unverified_https_context
+#     def download_dependencies(self):
+#         try:
+#             _create_unverified_https_context = ssl._create_unverified_context
+#         except AttributeError:
+#             pass
+#         else:
+#             ssl._create_default_https_context = _create_unverified_https_context
 
-        try:
-            nltk.data.find('stopwords')
-        except LookupError:
-            nltk.download('stopwords')
+#         try:
+#             nltk.data.find('stopwords')
+#         except LookupError:
+#             nltk.download('stopwords')
 
-        try:
-            nltk.data.find('wordnet')
-        except LookupError:
-            nltk.download('wordnet')
+#         try:
+#             nltk.data.find('wordnet')
+#         except LookupError:
+#             nltk.download('wordnet')
 
-    def process_text(self):
-        review = re.sub('[^a-zA-Z]', ' ', self.text)
-        review = review.lower()
-        review = review.split()
-        review = [word for word in review
-                  if word not in stopwords.words('english')]
-        review = ' '.join(review)
-        corpus = [review]
-        sequence = self.tokenizer.texts_to_sequences(corpus)
-        max_len = max([len(x) for x in sequence])
-        self.processed_text = np.array(pad_sequences(sequence, padding='post', maxlen=max_len))
+#     def process_text(self):
+#         review = re.sub('[^a-zA-Z]', ' ', self.text)
+#         review = review.lower()
+#         review = review.split()
+#         review = [word for word in review
+#                   if word not in stopwords.words('english')]
+#         review = ' '.join(review)
+#         corpus = [review]
+#         sequence = self.tokenizer.texts_to_sequences(corpus)
+#         max_len = max([len(x) for x in sequence])
+#         self.processed_text = np.array(pad_sequences(sequence, padding='post', maxlen=max_len))
 
-    def predict(self):
-        if self.processed_text.any():
-            prediction = self.model.predict_classes(self.processed_text)
-            if prediction[0] == 0:
-                return "false"
-            elif prediction[0] == 1:
-                return "true"
-            elif prediction[0] == 2:
-                return "partially false"
-            elif prediction[0] == 3:
-                return "other"
+#     def predict(self):
+#         if self.processed_text.any():
+#             prediction = self.model.predict_classes(self.processed_text)
+#             if prediction[0] == 0:
+#                 return "false"
+#             elif prediction[0] == 1:
+#                 return "true"
+#             elif prediction[0] == 2:
+#                 return "partially false"
+#             elif prediction[0] == 3:
+#                 return "other"
 
 
 # class Sentiment(Model):
@@ -478,11 +478,11 @@ def clean_text(text):
 if __name__ == '__main__':
     text = parse_args()
 
-    # Bi LSTM
-    bilstm = BiLstm(text)
-    bilstm.download_dependencies()
-    bilstm.process_text()
-    prediction_bilstm = bilstm.predict()
+    # # Bi LSTM
+    # bilstm = BiLstm(text)
+    # bilstm.download_dependencies()
+    # bilstm.process_text()
+    # prediction_bilstm = bilstm.predict()
 
     # # Sentiment Analysis
     # sentiment = Sentiment(text)
@@ -514,7 +514,8 @@ if __name__ == '__main__':
     # roberta.process_text()
     # prediction_roberta = roberta.predict()[0]
 
-    c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
+    #c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
+    c = Counter([prediction_three_layer])
     value, count = c.most_common()[0]
     if value:
         with open('scor.txt', 'w+') as f:
