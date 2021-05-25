@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -86,8 +87,14 @@ public class AiService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Scanner in = new Scanner(new File("scor.txt"));
-        String score1 = in.nextLine();
+        Scanner in= new Scanner(new File("scor.txt"));
+        String score1 = "";
+        try {
+            score1 = in.nextLine();
+        }
+        catch (NoSuchElementException e) {
+            return p1.getErrorStream().toString();
+        }
 
         in.close();
         return score1;
