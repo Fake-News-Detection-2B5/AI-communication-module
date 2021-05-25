@@ -80,7 +80,7 @@ public class AiService {
         input.flush();
 
         // Process p1 = Runtime.getRuntime().exec("python3 classification.py");
-        Process p1 = Runtime.getRuntime().exec("python3 test.py");
+        Process p1 = Runtime.getRuntime().exec("python3 classification.py");
         try {
             p1.waitFor();//wait for py script to finish
         } catch (InterruptedException e) {

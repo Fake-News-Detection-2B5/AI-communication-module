@@ -477,8 +477,12 @@ class BiLstm(Model):
 
 if __name__ == '__main__':
     # text = parse_args()
-    fin = open("input.txt", "r")
-    text = ' '.join(fin.read())
+    
+    text = ''
+
+    with open("input.txt", "r") as fin:
+        text = ' '.join(fin.read())
+
 
     # Bi LSTM
     bilstm = BiLstm(text)
