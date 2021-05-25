@@ -45,7 +45,7 @@ public class AiService {
             aiResult.setTitle(aiEntity.getTitle());
             aiResult.setContent(aiEntity.getContent());
             aiResult.setResult(result);
-            aiRepository.save(aiResult);
+            // aiRepository.save(aiResult);
 
             return new ScoreResult(result);
         }
