@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
@@ -93,7 +94,7 @@ public class AiService {
             score1 = in.nextLine();
         }
         catch (NoSuchElementException e) {
-            return p1.getErrorStream().toString();
+            return Arrays.toString(p1.getErrorStream().readAllBytes());
         }
 
         in.close();
