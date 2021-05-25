@@ -1,30 +1,30 @@
 import re
 import ssl
 import nltk
-import spacy
+# import spacy
 import string
 import pickle
 import warnings
-import argparse
+# import argparse
 import itertools
-import numpy as np
+# import numpy as np
 import pandas as pd
-# import tensorflow as tf
-from empath import Empath
+import tensorflow as tf
+# from empath import Empath
 from nltk import tokenize
-import scipy.sparse as sp
+# import scipy.sparse as sp
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
-from sklearn.ensemble import GradientBoostingClassifier
-# from tensorflow.keras.preprocessing.text import Tokenizer
+# from sklearn.ensemble import GradientBoostingClassifier
+from tensorflow.keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-# from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 # import torch
 # from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
-#    get_linear_schedule_with_warmup
+#     get_linear_schedule_with_warmup
 # from torch.utils.data import TensorDataset, random_split, DataLoader, RandomSampler, SequentialSampler
 
 warnings.filterwarnings("ignore")
@@ -44,54 +44,54 @@ class Model:
         pass
 
 
-# class BiLstm(Model):
-#     def __init__(self, text):
-#         super().__init__(text)
-#         self.model = tf.keras.models.load_model('models/Bi-Lstm/model')
-#         with open('models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
-#             self.tokenizer = pickle.load(f)
+class BiLstm(Model):
+    def __init__(self, text):
+        super().__init__(text)
+        self.model = tf.keras.models.load_model('models/Bi-Lstm/model')
+        with open('models/Bi-Lstm/tokenizer.pickle', 'rb') as f:
+            self.tokenizer = pickle.load(f)
 
-#     def download_dependencies(self):
-#         try:
-#             _create_unverified_https_context = ssl._create_unverified_context
-#         except AttributeError:
-#             pass
-#         else:
-#             ssl._create_default_https_context = _create_unverified_https_context
+    def download_dependencies(self):
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            pass
+        else:
+            ssl._create_default_https_context = _create_unverified_https_context
 
-#         try:
-#             nltk.data.find('stopwords')
-#         except LookupError:
-#             nltk.download('stopwords')
+        try:
+            nltk.data.find('stopwords')
+        except LookupError:
+            nltk.download('stopwords')
 
-#         try:
-#             nltk.data.find('wordnet')
-#         except LookupError:
-#             nltk.download('wordnet')
+        try:
+            nltk.data.find('wordnet')
+        except LookupError:
+            nltk.download('wordnet')
 
-#     def process_text(self):
-#         review = re.sub('[^a-zA-Z]', ' ', self.text)
-#         review = review.lower()
-#         review = review.split()
-#         review = [word for word in review
-#                   if word not in stopwords.words('english')]
-#         review = ' '.join(review)
-#         corpus = [review]
-#         sequence = self.tokenizer.texts_to_sequences(corpus)
-#         max_len = max([len(x) for x in sequence])
-#         self.processed_text = np.array(pad_sequences(sequence, padding='post', maxlen=max_len))
+    def process_text(self):
+        review = re.sub('[^a-zA-Z]', ' ', self.text)
+        review = review.lower()
+        review = review.split()
+        review = [word for word in review
+                  if word not in stopwords.words('english')]
+        review = ' '.join(review)
+        corpus = [review]
+        sequence = self.tokenizer.texts_to_sequences(corpus)
+        max_len = max([len(x) for x in sequence])
+        self.processed_text = np.array(pad_sequences(sequence, padding='post', maxlen=max_len))
 
-#     def predict(self):
-#         if self.processed_text.any():
-#             prediction = self.model.predict_classes(self.processed_text)
-#             if prediction[0] == 0:
-#                 return "false"
-#             elif prediction[0] == 1:
-#                 return "true"
-#             elif prediction[0] == 2:
-#                 return "partially false"
-#             elif prediction[0] == 3:
-#                 return "other"
+    def predict(self):
+        if self.processed_text.any():
+            prediction = self.model.predict_classes(self.processed_text)
+            if prediction[0] == 0:
+                return "false"
+            elif prediction[0] == 1:
+                return "true"
+            elif prediction[0] == 2:
+                return "partially false"
+            elif prediction[0] == 3:
+                return "other"
 
 
 # class Sentiment(Model):
@@ -132,134 +132,134 @@ class Model:
 #                 return "other"
 
 
-class Three_Layer(Model):
-    def __init__(self, text):
-        super().__init__(text)
+# class Three_Layer(Model):
+#     def __init__(self, text):
+#         super().__init__(text)
 
-    def download_dependencies(self):
-        try:
-            nltk.data.find('stopwords')
-            nltk.data.find('wordnet')
-            nltk.data.find('words')
-        except LookupError:
-            nltk.download('stopwords')
-            nltk.download('wordnet')
-            nltk.download('words')
+#     def download_dependencies(self):
+#         try:
+#             nltk.data.find('stopwords')
+#             nltk.data.find('wordnet')
+#             nltk.data.find('words')
+#         except LookupError:
+#             nltk.download('stopwords')
+#             nltk.download('wordnet')
+#             nltk.download('words')
 
-    def process_text(self):
-        self.clean_text = clean_text(self.text)
+#     def process_text(self):
+#         self.clean_text = clean_text(self.text)
 
-        nlp = spacy.load('en_core_web_sm')
-        pos_tags_column = []
+#         nlp = spacy.load('en_core_web_sm')
+#         pos_tags_column = []
 
-        for text in self.text.split():
-            pos_tags = []
-            doc = nlp(text)
-            for token in doc:
-                pos_tags.append(token.pos_)
-            all_pos_tags = ' '.join(pos_tags)
-            pos_tags_column.append(all_pos_tags)
+#         for text in self.text.split():
+#             pos_tags = []
+#             doc = nlp(text)
+#             for token in doc:
+#                 pos_tags.append(token.pos_)
+#             all_pos_tags = ' '.join(pos_tags)
+#             pos_tags_column.append(all_pos_tags)
 
-        self.POS_text = pos_tags_column
+#         self.POS_text = pos_tags_column
 
-        lexicon = Empath()
-        semantic = []
-        count = 0
+#         lexicon = Empath()
+#         semantic = []
+#         count = 0
 
-        d = lexicon.analyze(self.text.split(), normalize=False)
-        x = []
-        for key, value in d.items():
-            x.append(value)
-        x = np.asarray(x)
-        semantic.append(x)
+#         d = lexicon.analyze(self.text.split(), normalize=False)
+#         x = []
+#         for key, value in d.items():
+#             x.append(value)
+#         x = np.asarray(x)
+#         semantic.append(x)
 
-        self.semantic_text = semantic
+#         self.semantic_text = semantic
 
-        categories = []
-        a = lexicon.analyze("")
-        for key, value in a.items():
-            categories.append(key)
+#         categories = []
+#         a = lexicon.analyze("")
+#         for key, value in a.items():
+#             categories.append(key)
 
-        sem = []
-        a = []
-        for j in range(len(semantic[0])):
-            for k in range(int(semantic[0][j])):
-                a.append(categories[j])
-        b = " ".join(a)
-        sem.append(b)
+#         sem = []
+#         a = []
+#         for j in range(len(semantic[0])):
+#             for k in range(int(semantic[0][j])):
+#                 a.append(categories[j])
+#         b = " ".join(a)
+#         sem.append(b)
 
-        self.semantics_text = sem
+#         self.semantics_text = sem
 
-        X_test_text = self.clean_text
-        X_test_POS = self.POS_text
-        X_test_sem = self.semantics_text
+#         X_test_text = self.clean_text
+#         X_test_POS = self.POS_text
+#         X_test_sem = self.semantics_text
 
-        empty = ""
-        for pos in X_test_POS:
-            empty += pos + " "
-        X_test_POS = [empty]
+#         empty = ""
+#         for pos in X_test_POS:
+#             empty += pos + " "
+#         X_test_POS = [empty]
 
-        loaded_tfidf = pickle.load(open(
-            '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/tfidf_pickle.sav', 'rb'))
-        loaded_pos = pickle.load(open(
-            '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/pos_pickle.sav', 'rb'))
-        loaded_sem = pickle.load(open(
-            '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/sem_pickle.sav', 'rb'))
+#         loaded_tfidf = pickle.load(open(
+#             '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/tfidf_pickle.sav', 'rb'))
+#         loaded_pos = pickle.load(open(
+#             '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/pos_pickle.sav', 'rb'))
+#         loaded_sem = pickle.load(open(
+#             '../../Desktop/AI-communication-module/models/Three_Layer/vectorizers/sem_pickle.sav', 'rb'))
 
-        tfidf_test = loaded_tfidf.transform([X_test_text])
-        pos_tfidf_test = loaded_pos.transform(X_test_POS)
-        sem_tfidf_test = loaded_sem.transform(X_test_sem)
+#         tfidf_test = loaded_tfidf.transform([X_test_text])
+#         pos_tfidf_test = loaded_pos.transform(X_test_POS)
+#         sem_tfidf_test = loaded_sem.transform(X_test_sem)
 
-        text_w = 0.5 * 3
-        pos_w = 0.15 * 3
-        sem_w = 0.35 * 3
+#         text_w = 0.5 * 3
+#         pos_w = 0.15 * 3
+#         sem_w = 0.35 * 3
 
-        tfidf_test *= text_w
-        pos_tfidf_test *= pos_w
-        sem_tfidf_test *= sem_w
+#         tfidf_test *= text_w
+#         pos_tfidf_test *= pos_w
+#         sem_tfidf_test *= sem_w
 
-        diff_n_rows = pos_tfidf_test.shape[0] - tfidf_test.shape[0]
-        d = sp.vstack((tfidf_test, sp.csr_matrix((diff_n_rows, tfidf_test.shape[1]))))
-        e = sp.hstack((pos_tfidf_test, d))
+#         diff_n_rows = pos_tfidf_test.shape[0] - tfidf_test.shape[0]
+#         d = sp.vstack((tfidf_test, sp.csr_matrix((diff_n_rows, tfidf_test.shape[1]))))
+#         e = sp.hstack((pos_tfidf_test, d))
 
-        diff_n_rows = e.shape[0] - sem_tfidf_test.shape[0]
-        d = sp.vstack((sem_tfidf_test, sp.csr_matrix((diff_n_rows, sem_tfidf_test.shape[1]))))
+#         diff_n_rows = e.shape[0] - sem_tfidf_test.shape[0]
+#         d = sp.vstack((sem_tfidf_test, sp.csr_matrix((diff_n_rows, sem_tfidf_test.shape[1]))))
 
-        self.X_test = sp.hstack((e, d))
+#         self.X_test = sp.hstack((e, d))
 
-    def load_model(self):
-        self.loaded_model = pickle.load(open(
-            '../../Desktop/AI-communication-module/models/Three_Layer/three_layer_pickle.sav', 'rb'))
+#     def load_model(self):
+#         self.loaded_model = pickle.load(open(
+#             '../../Desktop/AI-communication-module/models/Three_Layer/three_layer_pickle.sav', 'rb'))
 
-    def predict(self):
-        self.load_model()
-        return self.loaded_model.predict(self.X_test)[0].lower()
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='Fake News Classification')
-    parser.add_argument('text', metavar='text', type=str, nargs='+', help='Text to be classified')
-    args = parser.parse_args()
-    return ' '.join(args.text)
+#     def predict(self):
+#         self.load_model()
+#         return self.loaded_model.predict(self.X_test)[0].lower()
 
 
-def clean_text(text):
-    text = re.sub('[' + string.punctuation + ']', '', text)
-    text = re.sub(r"[-()\"#/@’;:<>{}`+=~|.!?,]", '', text)
-    text = text.lower().split()
+# def parse_args():
+#     parser = argparse.ArgumentParser(description='Fake News Classification')
+#     parser.add_argument('text', metavar='text', type=str, nargs='+', help='Text to be classified')
+#     args = parser.parse_args()
+#     return ' '.join(args.text)
 
-    stops = set(stopwords.words("english"))
-    text = [w for w in text if w not in stops]
-    text = " ".join(text)
 
-    text = re.sub(r'[^a-zA-Z\s]', u'', text, flags=re.UNICODE)
+# def clean_text(text):
+#     text = re.sub('[' + string.punctuation + ']', '', text)
+#     text = re.sub(r"[-()\"#/@’;:<>{}`+=~|.!?,]", '', text)
+#     text = text.lower().split()
 
-    text = text.split()
-    l = WordNetLemmatizer()
-    lemmatized_words = [l.lemmatize(word) for word in text if len(word) > 2]
-    text = " ".join(lemmatized_words)
+#     stops = set(stopwords.words("english"))
+#     text = [w for w in text if w not in stops]
+#     text = " ".join(text)
 
-    return text
+#     text = re.sub(r'[^a-zA-Z\s]', u'', text, flags=re.UNICODE)
+
+#     text = text.split()
+#     l = WordNetLemmatizer()
+#     lemmatized_words = [l.lemmatize(word) for word in text if len(word) > 2]
+#     text = " ".join(lemmatized_words)
+
+#     return text
 
 
 # class BertModel(Model):
@@ -402,87 +402,89 @@ def clean_text(text):
 
 
 # class ROBERTA(torch.nn.Module, Model):
-    def __init__(self, text, dropout_rate=0.4):
-        super(ROBERTA, self).__init__()
-        # Model.__init__(text)
-        self.text = text
-        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-        self.roberta = RobertaModel.from_pretrained('roberta-base', return_dict=False, num_labels=4)
-        self.d1 = torch.nn.Dropout(dropout_rate)
-        self.l1 = torch.nn.Linear(768, 64)
-        self.bn1 = torch.nn.LayerNorm(64)
-        self.d2 = torch.nn.Dropout(dropout_rate)
-        self.l2 = torch.nn.Linear(64, 4)
+#     def __init__(self, text, dropout_rate=0.4):
+#         super(ROBERTA, self).__init__()
+#         # Model.__init__(text)
+#         self.text = text
+#         self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+#         self.roberta = RobertaModel.from_pretrained('roberta-base', return_dict=False, num_labels=4)
+#         self.d1 = torch.nn.Dropout(dropout_rate)
+#         self.l1 = torch.nn.Linear(768, 64)
+#         self.bn1 = torch.nn.LayerNorm(64)
+#         self.d2 = torch.nn.Dropout(dropout_rate)
+#         self.l2 = torch.nn.Linear(64, 4)
 
-        if torch.cuda.is_available():
-            self.device = torch.device('cuda:0')
-        else:
-            self.device = torch.device('cpu')
+#         if torch.cuda.is_available():
+#             self.device = torch.device('cuda:0')
+#         else:
+#             self.device = torch.device('cpu')
 
-    def download_dependencies(self):
-        try:
-            nltk.data.find('stopwords')
-            nltk.data.find('wordnet')
-        except LookupError:
-            nltk.download('stopwords')
-            nltk.download('wordnet')
+#     def download_dependencies(self):
+#         try:
+#             nltk.data.find('stopwords')
+#             nltk.data.find('wordnet')
+#         except LookupError:
+#             nltk.download('stopwords')
+#             nltk.download('wordnet')
 
-    def process_text(self):
-        lemmatizer = WordNetLemmatizer()
-        corpus = []
+#     def process_text(self):
+#         lemmatizer = WordNetLemmatizer()
+#         corpus = []
 
-        for i in range(len(self.text)):
-            review = re.sub('[^a-zA-Z]', ' ', self.text[i])
-            review = review.lower()
-            review = review.split()
-            review = [lemmatizer.lemmatize(word) for word in review if not word in stopwords.words('english')]
-            review = ' '.join(review)
-            corpus.append(review)
-        self.text = corpus
+#         for i in range(len(self.text)):
+#             review = re.sub('[^a-zA-Z]', ' ', self.text[i])
+#             review = review.lower()
+#             review = review.split()
+#             review = [lemmatizer.lemmatize(word) for word in review if not word in stopwords.words('english')]
+#             review = ' '.join(review)
+#             corpus.append(review)
+#         self.text = corpus
 
-    def load_checkpoint(self, path, model):
-        state_dict = torch.load(path, map_location=self.device)
-        model.load_state_dict(state_dict['model_state_dict'])
+#     def load_checkpoint(self, path, model):
+#         state_dict = torch.load(path, map_location=self.device)
+#         model.load_state_dict(state_dict['model_state_dict'])
 
-        return state_dict['valid_loss']
+#         return state_dict['valid_loss']
 
-    def predict(self):
-        labels_output = []
-        labels = ['false', 'true', 'partially false', 'other']
-        roberta_encoded_dict = self.tokenizer.encode_plus(
-            self.text,  # Sentence to encode.
-            add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
-            max_length=128,  # Pad & truncate all sentences.
-            pad_to_max_length=True,
-            return_attention_mask=True,  # Construct attn. masks.
-            return_tensors='pt',  # Return pytorch tensors.
-        )
-        roberta_encoded_dict = roberta_encoded_dict.to(self.device)
-        outputs = self(**roberta_encoded_dict)
-        labels_output.append(labels[outputs.argmax()])
-        return labels_output
+#     def predict(self):
+#         labels_output = []
+#         labels = ['false', 'true', 'partially false', 'other']
+#         roberta_encoded_dict = self.tokenizer.encode_plus(
+#             self.text,  # Sentence to encode.
+#             add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
+#             max_length=128,  # Pad & truncate all sentences.
+#             pad_to_max_length=True,
+#             return_attention_mask=True,  # Construct attn. masks.
+#             return_tensors='pt',  # Return pytorch tensors.
+#         )
+#         roberta_encoded_dict = roberta_encoded_dict.to(self.device)
+#         outputs = self(**roberta_encoded_dict)
+#         labels_output.append(labels[outputs.argmax()])
+#         return labels_output
 
-    def forward(self, input_ids, attention_mask):
-        _, x = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
-        x = self.d1(x)
-        x = self.l1(x)
-        x = self.bn1(x)
-        x = torch.nn.Tanh()(x)
-        x = self.d2(x)
-        x = self.l2(x)
+#     def forward(self, input_ids, attention_mask):
+#         _, x = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
+#         x = self.d1(x)
+#         x = self.l1(x)
+#         x = self.bn1(x)
+#         x = torch.nn.Tanh()(x)
+#         x = self.d2(x)
+#         x = self.l2(x)
 
-        return x
+#         return x
 
 
 
 if __name__ == '__main__':
-    text = parse_args()
+    # text = parse_args()
+    fin = open("input.txt", "r")
+    text = ' '.join(fin.read())
 
-    # # Bi LSTM
-    # bilstm = BiLstm(text)
-    # bilstm.download_dependencies()
-    # bilstm.process_text()
-    # prediction_bilstm = bilstm.predict()
+    # Bi LSTM
+    bilstm = BiLstm(text)
+    bilstm.download_dependencies()
+    bilstm.process_text()
+    prediction_bilstm = bilstm.predict()
 
     # # Sentiment Analysis
     # sentiment = Sentiment(text)
@@ -490,11 +492,11 @@ if __name__ == '__main__':
     # sentiment.process_text()
     # prediction_sentiment = sentiment.predict()
 
-    # Three-Layer
-    three_layer = Three_Layer(text)
-    three_layer.download_dependencies()
-    three_layer.process_text()
-    prediction_three_layer = three_layer.predict()
+    # # Three-Layer
+    # three_layer = Three_Layer(text)
+    # three_layer.download_dependencies()
+    # three_layer.process_text()
+    # prediction_three_layer = three_layer.predict()
 
     # # Bert
     # try:
@@ -514,9 +516,9 @@ if __name__ == '__main__':
     # roberta.process_text()
     # prediction_roberta = roberta.predict()[0]
 
-    #c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
-    c = Counter([prediction_three_layer])
-    value, count = c.most_common()[0]
+    # c = Counter([prediction_bilstm, prediction_sentiment, prediction_three_layer])
+    # value, count = c.most_common()[0]
+    value = prediction_bilstm
     if value:
-        with open('scor.txt', 'w+') as f:
+        with open('scor.txt', 'w') as f:
             f.write(value)
