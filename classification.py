@@ -526,3 +526,6 @@ if __name__ == '__main__':
     if value:
         with open('scor.txt', 'w') as f:
             f.write(value)
+    else:
+        with open("scor.txt", "w") as f:
+            f.write("none-dont-believe")
