@@ -20,7 +20,7 @@ from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 # from sklearn.ensemble import GradientBoostingClassifier
 from tensorflow.keras.preprocessing.text import Tokenizer
-from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 # import torch
 # from transformers import RobertaModel, RobertaTokenizer, BertTokenizer, BertForSequenceClassification, AdamW, BertConfig, \
